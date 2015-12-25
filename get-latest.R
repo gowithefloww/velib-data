@@ -8,6 +8,16 @@ library(rmongodb)
 # Get velib data
 data <- read.csv2("http://opendata.paris.fr/explore/dataset/stations-velib-disponibilites-en-temps-reel/download/?format=csv&timezone=Europe/Berlin&use_labels_for_header=true", stringsAsFactors = FALSE)
 
+# Remove pointless variables
+data$name <- NULL
+data$address <- NULL
+data$contract_name <- NULL
+data$position <- NULL
+data$banking <- NULL
+
+# Format date
+data$last_update <- strptime(data$last_update,format = "%FT%R:%S+01:00")
+
 # Add a datetime variable with current time
 data$datetime <- Sys.time()
 
