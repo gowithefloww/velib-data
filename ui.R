@@ -11,7 +11,6 @@ shinyUI(fluidPage(navbarPage("Velo.paris", id="nav",
         tags$head(
           # Include our custom CSS
           includeCSS("styles.css")
-          #includeScript("gomap.js")
         ),
         tags$head(tags$link(rel="shortcut icon", href="favicon.ico")),
         
