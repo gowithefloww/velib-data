@@ -1,7 +1,13 @@
 # Read the Velib Open Data CSV and import it in MongoDB.
+
 # Crontab for execution each minute:
 # * * * * * R -f ~/git/velib-data/get-latest.R
+
+# Be sure to create an index:
 # db.dispo.createIndex( { datetime: -1 } )
+
+# To export this collection
+# mongoexport --db velib --collection dispo --type=csv --fields number,bonus,status,bike_stands,available_bike_stands,available_bikes,last_update,datetime --out ./dispo.csv
 
 # Import R MongoDB library
 library(rmongodb)
