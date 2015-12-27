@@ -9,12 +9,26 @@ shinyUI(fluidPage(navbarPage("Velo.paris", id="nav",
   tabPanel("Carte des stations",
     div(class="outer",
         tags$head(
-          # Include our custom CSS
           includeCSS("styles.css")
         ),
-        tags$head(tags$link(rel="shortcut icon", href="favicon.ico")),
+        #tags$head(tags$link(rel="shortcut icon", href="favicon.ico")),
         
-    leafletOutput("mymap", width="100%", height="100%")
+    leafletOutput("mymap", width="100%", height="100%"),
+    
+    absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                  draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
+                  width = 400, height = "auto",
+                  
+                  h3(textOutput("name")),
+                  showOutput("latest_dispo", "polycharts")
+                  #p("Dans 10 minutes il y aura à cette station:"),
+                  #p("15 places libres et 33 vélos disponibles."),
+                  #p("Dans 30 minutes:"),
+                  #p("33 places libres et 15 vélos disponibles."),
+                  #p("Dans 1 heure:"),
+                  #p("38 places libres et 10 vélos disponibles.")
+    )
+    
     #,p(),
     #textOutput("name"),
     #showOutput("dataplot", "polycharts")
