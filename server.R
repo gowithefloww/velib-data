@@ -12,8 +12,9 @@ library(reshape2)
 # Import stations list from MongoDB
 mongo <- mongo.create()
 stations <- mongo.find.all(mongo,"velib.stations")
-stations <- data.frame(matrix(unlist(stations), nrow=length(stations), byrow=T))
-names(stations) <- c("id","number","name","address","position","contract","banking", "lat","long")
+stations <- data.frame(t(sapply(stations,c)))
+#stations <- data.frame(matrix(unlist(stations), nrow=length(stations), byrow=T))
+names(stations) <- c("id","number","name","address","position","contract","banking", "lat","long","commune","code_postal","dep")
 stations$long <- as.double(as.character(stations$long))
 stations$lat <- as.double(as.character(stations$lat))
 stations$number <- as.integer(as.character(stations$number))
@@ -48,7 +49,7 @@ server <- function(input, output, session) {
       available_bikes$heure <- strftime(available_bikes$date,"%H:%M")
       available_bikes$variable <- as.character(available_bikes$variable)
       available_bikes$variable[available_bikes$variable == "bike_stands"] <- "Emplacements"
-      available_bikes$variable[available_bikes$variable == "available_bikes"] <- "Vélos disponibles"
+      available_bikes$variable[available_bikes$variable == "available_bikes"] <- "Vélos"
       available_bikes$variable[available_bikes$variable == "available_bike_stands"] <- "Places libres"
       names(available_bikes)[names(available_bikes)=="variable"] <- "Disponibilités"
       
@@ -57,10 +58,8 @@ server <- function(input, output, session) {
       p1$guides(x = list(title = ""))
       p1$addParams(width = 360, height = 300,title = "Dernières 24 heures")
       p1$set(legendPosition = "bottom")
-      p1$set(legendName = "bottom")
       p1
     })
-    
     
   })
   
@@ -76,4 +75,44 @@ server <- function(input, output, session) {
       addMarkers(data = points(),layerId = stations$number)
   })
   
+  output$emplacements_disponibles_48h <- renderChart2({
+    service <- mongo.find.all(mongo,"velib.emplacements_disponibles_48h")
+    service <- data.frame(matrix(unlist(service), nrow=length(service), byrow=T))
+    names(service) <- c("datetime","available_stands")
+    service$datetime <- as.POSIXct(service$datetime, origin="1970-01-01")
+    service$heure <- strftime(service$datetime,"%A %d %H:%M")
+    
+    service$numrow <- 1:nrow(service)
+    rPlot(y="available_stands", x="numrow",data=service,type ='line')
+    #p1$guides(x = list(title = ""))
+    
+    p1 <- rPlot(y="available_stands", x="numrow",data=service,type = 'line',size=list(const=1))
+    p1$addParams(title = "Emplacements disponibles ces dernières 72 heures sur l'ensemble du réseau")
+    p1$guides(x = list(title = "",labels =service$heure))
+    p1$guides(y = list(title = "",
+                       min =  min(service$available_stands) - (max(service$available_stands)/99),
+                       max = max(service$available_stands) + (max(service$available_stands)/99)))
+    p1
+  })
+  
+  output$emplacements_disponibles_semaine <- renderChart2({
+    vds <- mongo.find.all(mongo,"velib.emplacements_disponibles_semaine")
+    vds <- data.frame(matrix(unlist(vds), nrow=length(vds), byrow=T))
+    names(vds) <- c("datetime","emplacements_disponibles_semaine")
+    vds$emplacements_disponibles_semaine <- as.double(as.character(vds$emplacements_disponibles_semaine))*dim(stations)[[1]]
+    vds$datetime2 <- substr(as.character(vds$datetime), 0, 10)
+    
+    p1 <- rPlot(y="emplacements_disponibles_semaine", x=list(var="datetime", sort="datetime2"),data=vds,type = 'line',size=list(const=2))
+    p1$addParams(title = "Nombre d'emplacements disponibles la semaine passée")
+    p1$guides(x = list(title = ""))
+    p1$guides(y = list(title = "",
+              min =  min(vds[c("emplacements_disponibles_semaine")]) - (max(vds[c("emplacements_disponibles_semaine")])/20),
+              max = max(vds[c("emplacements_disponibles_semaine")]) + (max(vds[c("emplacements_disponibles_semaine")])/20)))
+    p1
+    })
 }
+
+
+
+
+

@@ -16,6 +16,15 @@ stations$name <- stri_trans_totitle(stations$name)
 stations$lat <- as.double(as.character(data.frame(do.call('rbind', strsplit(as.character(stations$position),", ",fixed=TRUE)))$X1))
 stations$long <- as.double(as.character(data.frame(do.call('rbind', strsplit(as.character(stations$position),", ",fixed=TRUE)))$X2))
 
+# Get the commune & code postal
+stations$commune <- as.character(data.frame(do.call('rbind', strsplit(as.character(stations$address)," - ",fixed=TRUE)))$X2)
+stations$code_postal <- as.character(data.frame(do.call('rbind', strsplit(as.character(stations$commune)," ",fixed=TRUE)))$X1)
+stations$code_postal <- as.integer(stations$code_postal)
+stations$code_postal[stations$code_postal < 75000] <- NA
+stations$code_postal[stations$code_postal > 100000] <- NA
+stations$dep <- as.integer(substr(stations$code_postal,0,2))
+stations$code_postal[stations$dep != 75 & !is.na(stations$dep)] <- stations$dep[stations$dep != 75 & !is.na(stations$dep)]
+
 # Connect to MongoDB
 mongo <- mongo.create()
 

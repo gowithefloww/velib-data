@@ -34,9 +34,12 @@ shinyUI(fluidPage(navbarPage("Velo.paris", id="nav",
     #showOutput("dataplot", "polycharts")
     )
   ),
-  tabPanel("Utilisation du service Vélib"
-  ),
-  tabPanel("À propos de ce site"
+  tabPanel("Utilisation du service Vélib",mainPanel(align="center",
+           showOutput("emplacements_disponibles_48h", "polycharts"),
+           showOutput("emplacements_disponibles_semaine", "polycharts")
+  )),
+  tabPanel("À propos de ce site",
+          includeMarkdown("about.md")
   )
   )
 ))
