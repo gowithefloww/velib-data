@@ -20,6 +20,17 @@ stations$lat <- as.double(as.character(stations$lat))
 stations$number <- as.integer(as.character(stations$number))
 stations$name <- as.character(stations$name)
 
+mvms <- mongo.find.all(mongo,"velib.moyenne_velos_minutestation")
+mvms <- data.frame(t(sapply(mvms,c)))
+mvms$number <- sapply(mvms$X_id,function(x) x$number)
+mvms$hour <- sapply(mvms$X_id,function(x) x$hour)
+mvms$bikes <- sapply(mvms$value,function(x) x$valeur)
+mvms$stands <- sapply(mvms$value,function(x) x$stands)
+mvms$X_id <- NULL
+mvms$value <- NULL
+mvms$prc_full <- mvms$bikes*100/mvms$stands
+mvms <- merge(stations,mvms)
+
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
@@ -52,8 +63,9 @@ server <- function(input, output, session) {
       available_bikes$variable[available_bikes$variable == "available_bikes"] <- "Vélos"
       available_bikes$variable[available_bikes$variable == "available_bike_stands"] <- "Places libres"
       names(available_bikes)[names(available_bikes)=="variable"] <- "Disponibilités"
+      available_bikes$numrow <- nrow(available_bikes)-1:nrow(available_bikes)
       
-      p1 <- rPlot(y="value", x=list(var="heure", sort="date"),data=available_bikes,type = 'line',color="Disponibilités",size=list(const=2))
+      p1 <- rPlot(y="value", x=list(var="heure", sort="numrow"),data=available_bikes,type = 'line',color="Disponibilités",size=list(const=2))
       p1$guides(y = list(title = "",min = min(available_bikes$value) - 1, max= max(available_bikes$value) + 1))
       p1$guides(x = list(title = ""))
       p1$addParams(width = 360, height = 300,title = "Dernières 24 heures")
@@ -110,6 +122,24 @@ server <- function(input, output, session) {
               max = max(vds[c("emplacements_disponibles_semaine")]) + (max(vds[c("emplacements_disponibles_semaine")])/20)))
     p1
     })
+  
+  output$distribmap <- renderLeaflet({
+    
+    points2 <- eventReactive(input$recalc, {
+      mvms[which(mvms$hour == input$repartitionslider),][c("lat","long")]
+    }, ignoreNULL = FALSE)
+      
+    leaflet() %>%
+      addProviderTiles("Stamen.Toner",
+                       options = providerTileOptions(noWrap = TRUE)
+      ) %>% setView(lng = 2.3572111, lat = 48.8581874, zoom = 13) %>% 
+      addCircleMarkers(
+        radius = mvms[which(mvms$hour == input$repartitionslider),]$prc_full/7,
+        color = "lightblue",
+        stroke = FALSE, fillOpacity = 0.7,
+        data = points2()
+      )
+  })
 }
 
 
