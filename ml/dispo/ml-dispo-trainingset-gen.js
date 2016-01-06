@@ -2,7 +2,7 @@
 
 var map = function() {
   emit({
-    datetime: ((this.datetime.getTime() - (this.datetime.getTime() % (60*1000)))/1000),
+    datetime: ((this.datetime.getTime() - (this.datetime.getTime() % (60*1000)))/1000).toString(),
     number: this.number
   },
   this.available_bikes);

@@ -135,7 +135,7 @@ server <- function(input, output, session) {
       ) %>% setView(lng = 2.3572111, lat = 48.8581874, zoom = 13) %>% 
       addCircleMarkers(
         radius = mvms[which(mvms$hour == input$repartitionslider),]$prc_full/7,
-        color = "lightblue",
+        color = "blue",
         stroke = FALSE, fillOpacity = 0.7,
         data = points2()
       )
